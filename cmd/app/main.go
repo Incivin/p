@@ -12,7 +12,9 @@ import (
 
 func main() {
 	database.InitDB()
-	database.DB.AutoMigrate(&taskService.Task{})
+	if err := database.DB.AutoMigrate(&taskService.Task{}); err != nil {
+		log.Fatalf("Failed to migrate database: %v", err)
+	}
 
 	repo := taskService.NewTaskRepository(database.DB)
 	service := taskService.NewService(repo)
@@ -27,7 +29,7 @@ func main() {
 	strictHandler := tasks.NewStrictHandler(handler, nil)
 	tasks.RegisterHandlers(e, strictHandler)
 	if err := e.Start(":8080"); err != nil {
-		log.Fatalf("Error starting server:", err)
+		log.Fatal("Error starting server:", err)
 	}
 
 }

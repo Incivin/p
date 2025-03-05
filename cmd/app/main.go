@@ -7,27 +7,34 @@ import (
 	"p/internal/database"
 	"p/internal/handlers"
 	"p/internal/taskService"
+	"p/internal/userService"
 	"p/internal/web/tasks"
+	"p/internal/web/users"
 )
 
 func main() {
 	database.InitDB()
-	if err := database.DB.AutoMigrate(&taskService.Task{}); err != nil {
+	if err := database.DB.AutoMigrate(&userService.User{}, &taskService.Task{}); err != nil {
 		log.Fatalf("Failed to migrate database: %v", err)
 	}
+	tasksRepo := taskService.NewTaskRepository(database.DB)
+	tasksService := taskService.NewService(tasksRepo)
+	tasksHandler := handlers.NewHandler(tasksService)
 
-	repo := taskService.NewTaskRepository(database.DB)
-	service := taskService.NewService(repo)
+	userRepo := userService.NewUserRepository(database.DB)
+	userService := userService.NewUserService(userRepo)
 
-	handler := handlers.NewHandler(service)
+	userHandler := handlers.NewUserHandler(userService)
 
 	e := echo.New()
 
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 
-	strictHandler := tasks.NewStrictHandler(handler, nil)
-	tasks.RegisterHandlers(e, strictHandler)
+	strictTaskHandler := tasks.NewStrictHandler(tasksHandler, nil)
+	tasks.RegisterHandlers(e, strictTaskHandler)
+	strictUserHandler := users.NewStrictHandler(userHandler, nil)
+	users.RegisterHandlers(e, strictUserHandler)
 	if err := e.Start(":8080"); err != nil {
 		log.Fatal("Error starting server:", err)
 	}

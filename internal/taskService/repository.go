@@ -1,6 +1,7 @@
 package taskService
 
 import (
+	"fmt"
 	"gorm.io/gorm"
 )
 
@@ -9,6 +10,7 @@ type TaskRepository interface {
 	GetAllTasks() ([]Task, error)
 	UpdateTaskByID(id uint, task Task) (Task, error)
 	DeleteTaskByID(id uint) error
+	GetTasksByUserID(userID uint) ([]Task, error)
 }
 type taskRepository struct {
 	db *gorm.DB
@@ -18,8 +20,19 @@ func NewTaskRepository(db *gorm.DB) *taskRepository {
 	return &taskRepository{db: db}
 
 }
+func (r *taskRepository) GetTasksByUserID(userID uint) ([]Task, error) {
+	var tasks []Task
+	err := r.db.Where("user_id = ?", userID).Find(&tasks).Error
+	if err != nil {
+		return nil, err
+	}
+	return tasks, nil
+}
 
 func (r *taskRepository) CreateTask(task Task) (Task, error) {
+	if task.UserID == 0 {
+		return Task{}, fmt.Errorf("userID is required to create a task")
+	}
 	result := r.db.Create(&task)
 	if result.Error != nil {
 		return Task{}, result.Error

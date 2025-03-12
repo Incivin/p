@@ -43,13 +43,13 @@ func (h *TaskHandler) PatchTasksId(_ context.Context, request tasks.PatchTasksId
 		Id:     &updateTask.ID,
 		IsDone: &updateTask.IsDone,
 		Task:   &updateTask.Task,
+		UserId: &updateTask.UserID,
 	}
 	return response, nil
 
 }
 
 func (h *TaskHandler) GetTasks(_ context.Context, _ tasks.GetTasksRequestObject) (tasks.GetTasksResponseObject, error) {
-	//Получение всех задач из сервиса
 	allTasks, err := h.Service.GetAllTasks()
 	if err != nil {
 		return nil, err
@@ -72,9 +72,11 @@ func (h *TaskHandler) PostTasks(_ context.Context, request tasks.PostTasksReques
 	taskToCreate := taskService.Task{
 		Task:   *taskRequest.Task,
 		IsDone: *taskRequest.IsDone,
+		UserID: *taskRequest.UserId,
 	}
+	userID := taskToCreate.UserID
 
-	createdTask, err := h.Service.CreateTask(taskToCreate)
+	createdTask, err := h.Service.CreateTask(taskToCreate, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -82,7 +84,27 @@ func (h *TaskHandler) PostTasks(_ context.Context, request tasks.PostTasksReques
 		Id:     &createdTask.ID,
 		IsDone: &createdTask.IsDone,
 		Task:   &createdTask.Task,
+		UserId: &createdTask.UserID,
 	}
+	return response, nil
+}
+func (h *TaskHandler) GetTasksByUserID(_ context.Context, request tasks.GetTasksByUserIDRequestObject) (tasks.GetTasksByUserIDResponseObject, error) {
+	userID := request.Id
+	userTasks, err := h.Service.GetTasksByUserID(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	response := tasks.GetTasksByUserID200JSONResponse{}
+	for _, tsk := range userTasks {
+		task := tasks.Task{
+			Id:     &tsk.ID,
+			IsDone: &tsk.IsDone,
+			Task:   &tsk.Task,
+		}
+		response = append(response, task)
+	}
+
 	return response, nil
 }
 

@@ -68,6 +68,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/Task'
+
       responses:
         '201':
           description: The created task
@@ -117,6 +118,30 @@ paths:
       responses:
         '204':
           description: Successfully deleted user
+  /users/{id}/tasks:
+    get:
+      summary: Get all the user's tasks
+      operationId: GetTasksByUserID
+      tags:
+        - tasks
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: uint
+      responses:
+        '200':
+          description: A list of tasks for a user
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Task'
+
+
 
   /users:
     get:
@@ -170,6 +195,9 @@ components:
     Task:
       type: object
       properties:
+        user_id:
+          type: integer
+          format: uint
         id:
           type: integer
           format: uint

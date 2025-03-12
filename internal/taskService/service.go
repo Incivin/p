@@ -7,7 +7,8 @@ type TaskService struct {
 func NewService(repo TaskRepository) *TaskService {
 	return &TaskService{repo: repo}
 }
-func (s *TaskService) CreateTask(task Task) (Task, error) {
+func (s *TaskService) CreateTask(task Task, userID uint) (Task, error) {
+	task.UserID = userID
 	return s.repo.CreateTask(task)
 }
 func (s *TaskService) GetAllTasks() ([]Task, error) {
@@ -18,4 +19,7 @@ func (s *TaskService) PatchTask(id uint, task Task) (Task, error) {
 }
 func (s *TaskService) DeleteTask(id uint) error {
 	return s.repo.DeleteTaskByID(id)
+}
+func (s *TaskService) GetTasksByUserID(userID uint) ([]Task, error) {
+	return s.repo.GetTasksByUserID(userID)
 }
